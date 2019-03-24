@@ -58,7 +58,8 @@ internal func BluetoothHCISendRawCommand(request: BluetoothHCIRequestID,
     })
     
     commandData.withUnsafeBytes {
-        dispatchParameters.args.1 = UInt64(uintptr_t(bitPattern: $0))
+        guard let p = $0.baseAddress else { dispatchParameters.args.1 = 0; return }
+        dispatchParameters.args.1 = UInt64(uintptr_t(bitPattern: p))
     }
     
     withUnsafePointer(to: &commandSize, {
@@ -70,7 +71,14 @@ internal func BluetoothHCISendRawCommand(request: BluetoothHCIRequestID,
     dispatchParameters.sizes.2 = UInt64(MemoryLayout<uintptr_t>.size) // sizeof(uintptr_t);
     dispatchParameters.index = 0x000060c000000062 // Method ID
     
-    return outputData.withUnsafeMutableBytes {
-        BluetoothHCIDispatchUserClientRoutine(&dispatchParameters, $0, &returnParameterSize)
-    }
+    let c = try? outputData.withUnsafeMutableBytes { (buf: UnsafeMutableRawBufferPointer) throws -> Result<CInt, Error> in
+        guard let p = buf.baseAddress?.bindMemory(to: UInt8.self, capacity: buf.count) else {
+            return Result<CInt, Error>.failure( NSError(domain: "domain", code: 1000, userInfo: [:]) )
+        }
+        return Result {
+            BluetoothHCIDispatchUserClientRoutine(&dispatchParameters, p, &returnParameterSize)
+        }
+    }.get()
+    
+    return c ?? INT_MAX
 }

@@ -1,4 +1,4 @@
-// swift-tools-version:4.1
+// swift-tools-version:5.0
 import PackageDescription
 
 _ = Package(name: "BluetoothDarwin",
@@ -9,11 +9,11 @@ _ = Package(name: "BluetoothDarwin",
                 )
             ],
             dependencies: [
-                .package(url: "https://github.com/PureSwift/Bluetooth.git", .branch("master"))
+                .package(url: "https://github.com/ComputeCycles/Bluetooth.git", .branch("swift5"))
             ],
             targets: [
                 .target(name: "BluetoothDarwin", dependencies: ["Bluetooth", "CBluetoothDarwin"]),
                 .target(name: "CBluetoothDarwin"),
                 .testTarget(name: "BluetoothDarwinTests", dependencies: ["BluetoothDarwin"])
             ],
-            swiftLanguageVersions: [4])
+            swiftLanguageVersions: [.v5])
